@@ -120,8 +120,9 @@ const RegisteredPolls = () => {
               xs={12}
             >
               <PollCard 
+                footerBtnText={'Vote'}
                 isJoin={false}
-                product={product} 
+                product={product}
               />
             </Grid>
           ))}

@@ -1,8 +1,10 @@
 export { default as Account } from './Account';
 export { default as AllPolls } from './AllPolls';
+export { default as CreatePoll } from './CreatePoll';
 export { default as RegisteredPolls } from './RegisteredPolls';
 export { default as MyPolls } from './MyPolls';
-export { default as EndedPolls } from './EndedPolls';
+export { default as VotedPolls } from './VotedPolls';
+export { default as ViewPoll } from './ViewPoll';
 export { default as Dashboard } from './Dashboard';
 export { default as Icons } from './Icons';
 export { default as NotFound } from './NotFound';

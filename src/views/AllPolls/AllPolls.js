@@ -104,6 +104,10 @@ const AllPolls = () => {
 
   const [products] = useState(mockData);
 
+  const handleJoinClick = async () => {
+    console.log('Join clicked');
+  };
+
   return (
     <div className={classes.root}>
       <div className={classes.content}>
@@ -120,6 +124,7 @@ const AllPolls = () => {
               xs={12}
             >
               <PollCard 
+                handleJoinClick={handleJoinClick}
                 isJoin 
                 product={product} 
               />

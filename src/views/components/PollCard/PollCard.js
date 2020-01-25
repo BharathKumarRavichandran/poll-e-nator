@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/styles';
@@ -10,7 +11,8 @@ import {
   Typography,
   Grid,
   Divider,
-  IconButton
+  IconButton,
+  Button
 } from '@material-ui/core';
 import AccessTimeIcon from '@material-ui/icons/AccessTime';
 import AddBoxRoundedIcon from '@material-ui/icons/AddBoxRounded';
@@ -47,6 +49,10 @@ const PollCard = props => {
 
   const classes = useStyles();
 
+  const [footerToBaseLink, setFooterToBaseLink] = useState(
+    props.footerBtnText=='Vote' ? '/polls/vote': '/polls/view'
+  );
+
   return (
     <Card
       {...rest}
@@ -59,6 +65,7 @@ const PollCard = props => {
               <IconButton
                 aria-label="settings"
                 color="primary"
+                onClick={props.handleJoinClick}
                 size="medium"
               >
                 <AddBoxRoundedIcon />
@@ -121,13 +128,28 @@ const PollCard = props => {
           </Grid>
         </Grid>
       </CardActions>
+      { props.footerBtnText ? (
+        <CardActions>
+          <Link to={footerToBaseLink+'/'+product.id}>
+            <Button
+              color="secondary"
+              size="small"
+              variant="contained"
+            >
+              {props.footerBtnText}
+            </Button>
+          </Link>
+        </CardActions>
+      ):(null)}
     </Card>
   );
 };
 
 PollCard.propTypes = {
   className: PropTypes.string,
-  isJoin: PropTypes.bool.isRequired,
+  footerBtnText: PropTypes.string,
+  handleJoinClick: PropTypes.func,  
+  isJoin: PropTypes.bool,
   product: PropTypes.object.isRequired,
 };
 

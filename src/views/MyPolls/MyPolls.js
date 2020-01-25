@@ -104,6 +104,11 @@ const MyPolls = () => {
 
   const [products] = useState(mockData);
 
+  const handlePollViewClick = async (pollId) => {
+    console.log(pollId);
+    console.log('View Poll?',pollId);
+  };
+
   return (
     <div className={classes.root}>
       <div className={classes.content}>
@@ -120,8 +125,9 @@ const MyPolls = () => {
               xs={12}
             >
               <PollCard 
+                footerBtnText={'View'}
                 isJoin={false}
-                product={product} 
+                product={product}
               />
             </Grid>
           ))}

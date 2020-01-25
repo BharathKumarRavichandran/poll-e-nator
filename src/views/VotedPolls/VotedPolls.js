@@ -99,10 +99,14 @@ const mockData = [
 ];
 
 
-const EndedPolls = () => {
+const VotedPolls = () => {
   const classes = useStyles();
 
   const [products] = useState(mockData);
+
+  const handlePollViewClick = async () => {
+    console.log('View Poll?');
+  };
 
   return (
     <div className={classes.root}>
@@ -120,6 +124,7 @@ const EndedPolls = () => {
               xs={12}
             >
               <PollCard 
+                footerBtnText={'View'}
                 isJoin={false}
                 product={product} 
               />
@@ -140,4 +145,4 @@ const EndedPolls = () => {
   );
 };
 
-export default EndedPolls;
+export default VotedPolls;

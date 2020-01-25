@@ -6,9 +6,11 @@ import { Main as MainLayout, Minimal as MinimalLayout } from './layouts';
 
 import {
   AllPolls as AllPollsView,
+  CreatePoll as CreatePollView,
   MyPolls as MyPollsView,
   RegisteredPolls as RegisteredPollsView,
-  EndedPolls as EndedPollsView,
+  VotedPolls as VotedPollsView,
+  ViewPoll as ViewPollView,
   Dashboard as DashboardView,
   ProductList as ProductListView,
   UserList as UserListView,
@@ -36,7 +38,7 @@ const Routes = () => {
         path="/polls/all"
       />
       <RouteWithLayout
-        component={AllPollsView}
+        component={CreatePollView}
         exact
         layout={MainLayout}
         path="/polls/create"
@@ -54,11 +56,23 @@ const Routes = () => {
         path="/polls/registered"
       />
       <RouteWithLayout
-        component={EndedPollsView}
+        component={VotedPollsView}
         exact
         layout={MainLayout}
-        path="/polls/ended"
-      />  
+        path="/polls/voted"
+      />
+      <RouteWithLayout
+        component={ViewPollView}
+        exact
+        layout={MainLayout}
+        path="/polls/view/:pollId"
+      />
+      <RouteWithLayout
+        component={ViewPollView}
+        exact
+        layout={MainLayout}
+        path="/polls/vote/:pollId"
+      />
       <RouteWithLayout
         component={DashboardView}
         exact
