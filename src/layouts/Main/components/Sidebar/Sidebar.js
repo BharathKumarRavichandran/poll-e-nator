@@ -5,11 +5,9 @@ import { makeStyles } from '@material-ui/styles';
 import { Divider, Drawer } from '@material-ui/core';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import AddIcon from '@material-ui/icons/Add';
-import AddBoxIcon from '@material-ui/icons/AddBox';
 import EventAvailableIcon from '@material-ui/icons/EventAvailable';
 import CreateIcon from '@material-ui/icons/Create';
 import DoneIcon from '@material-ui/icons/Done';
-import EventBusyIcon from '@material-ui/icons/EventBusy';
 /*
 import PeopleIcon from '@material-ui/icons/People';
 import ShoppingBasketIcon from '@material-ui/icons/ShoppingBasket';

@@ -49,8 +49,8 @@ const PollCard = props => {
 
   const classes = useStyles();
 
-  const [footerToBaseLink, setFooterToBaseLink] = useState(
-    props.footerBtnText=='Vote' ? '/polls/vote': '/polls/view'
+  const [footerToBaseLink] = useState(
+    props.footerBtnText==='Vote' ? '/polls/vote': '/polls/view'
   );
 
   return (

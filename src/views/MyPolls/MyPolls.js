@@ -104,11 +104,6 @@ const MyPolls = () => {
 
   const [products] = useState(mockData);
 
-  const handlePollViewClick = async (pollId) => {
-    console.log(pollId);
-    console.log('View Poll?',pollId);
-  };
-
   return (
     <div className={classes.root}>
       <div className={classes.content}>

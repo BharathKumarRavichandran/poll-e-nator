@@ -1,2 +1,2 @@
 # Poll-e-nator
-Repository containing code for Hackverse 2020.
+Repository for Hackverse 2020.
