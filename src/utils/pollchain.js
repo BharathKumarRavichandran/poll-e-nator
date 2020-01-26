@@ -3,6 +3,8 @@ const Web3 = require('web3');
 
 const web3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:8545'));
 
+const fromAddress = localStorage.getItem('PollenatorUser')
+
 const getUserContract = async () => {
   try {
     const response = await axios.get('http://127.0.0.1:8000/build/contracts/UserManager.json');
@@ -18,7 +20,6 @@ const getUserContract = async () => {
 
 const createUser = async (name) => {
   try {
-    const fromAddress = localStorage.getItem('PollenatorUser');
     var contract = await getUserContract();
 
     let isLocked = await checkIsAccountLocked();
@@ -99,25 +100,45 @@ const loginUser = async (address,password) => {
   }
 };
 
-const registerPoll = async () => {
+const registerPoll = async (address) => {
   try {
-    let account = localStorage.getItem('PollenatorUser');
-    await web3.eth.sendTransaction({
-      from: account,
-      to: account,
-      value: 0
-    });
-    return false;
+    if(await checkIsAccountLocked()){
+      return;
+    }
+    let userContract = await getUserContract();
+    let transfer = await userContract.methods.registerForPoll(address).send({from: fromAddress});
+    if (transfer) {
+      // Successfully registered for poll, update list details
+      // Registered poll address = address
+    }
   } catch (err) {
     console.log(err.toString());
-    localStorage.removeItem('PollenatorUser');
-    return (err.message == 'authentication needed: password or unlock');
   }
 }
 
-const createPoll = async () => {
+const createPoll = async (pollName, shortDesc, longDesc, eligibility, startTime, endTime, revealTime, candidates) => {
   try {
-    
+    if(await checkIsAccountLocked()){
+      return;
+    }
+    let userContract = await getUserContract();
+    await userContract.methods.createNewPoll(pollName, shortDesc, longDesc, eligibility, candidates[0], candidates[1]).send({from: fromAddress});
+    var newPollCreatedEvent = userContract.createdNewPoll();
+    newPollCreatedEvent.watch( async (error, result) => {
+      if (!error)
+      {
+        let ballotContract = await getBallotContract();
+        let contract = ballotContract.at(result.args.poll);
+        await contract.methods.setStartTime(0, 0, 0, 0, 0).send({from: fromAddress});
+        await contract.methods.setEndTime(0, 0, 0, 0, 0).send({from: fromAddress});
+        await contract.methods.setRevealTime(0, 0, 0, 0, 0).send({from: fromAddress});
+        // Successfully created poll, update list details 
+        // Created poll address = result.args.poll
+      } 
+      else {
+        console.log(error);
+      }
+    }) 
   } catch (err) {
     console.log(err.toString());
   }
@@ -140,7 +161,6 @@ const getAllPolls = async () => {
     if(await checkIsAccountLocked()){
       return;
     }
-    const fromAddress = localStorage.getItem('PollenatorUser');
     let userContract = await getUserContract();
     let addresses = await userContract.methods.getAllPolls().call({from: fromAddress});
     let ballotContract = await getBallotContract();
@@ -148,20 +168,7 @@ const getAllPolls = async () => {
     let allPollDetails = [];
 
     addresses.map( async (address) => {
-      let contract = ballotContract.at(address);
-      let details = await contract.methods.getPollDetails().call();
-      let detailsArr = details.split(';');
-      allPollDetails.push({
-        creatorName: detailsArr[0],
-        pollName: detailsArr[1],
-        shortDesc: detailsArr[2],
-        longDesc: detailsArr[3],
-        eligibility: detailsArr[4],
-        startTime: detailsArr[5],
-        endTime: detailsArr[6],
-        revealTime: detailsArr[7],
-        candidate: [detailsArr[8], detailsArr[9]],
-      });
+      allPollDetails.push(getPollDetailsFromAddress(address, ballotContract));
     });
 
     return allPollDetails;
@@ -172,15 +179,41 @@ const getAllPolls = async () => {
 
 const getRegisteredPolls = async () => {
   try {
-    
+    if(await checkIsAccountLocked()){
+      return;
+    }
+    let userContract = await getUserContract();
+    let addresses = await userContract.methods.getUserRegisteredPolls().call({from: fromAddress});
+    let ballotContract = await getBallotContract();
+
+    let registeredPollDetails = [];
+
+    addresses.map( async (address) => {
+      registeredPollDetails.push(getPollDetailsFromAddress(address, ballotContract));
+    });
+
+    return registeredPollDetails;
   } catch (err) {
     console.log(err.toString());
   }
 }
 
-const getPollDetailsFromAddress = async () => {
+const getMyPolls = async () => {
   try {
-    
+    if(await checkIsAccountLocked()){
+      return;
+    }
+    let userContract = await getUserContract();
+    let addresses = await userContract.methods.getUserCreatedPolls().call({from: fromAddress});
+    let ballotContract = await getBallotContract();
+
+    let createdPollDetails = [];
+
+    addresses.map( async (address) => {
+      createdPollDetails.push(getPollDetailsFromAddress(address, ballotContract));
+    });
+
+    return createdPollDetails;
   } catch (err) {
     console.log(err.toString());
   }
@@ -188,31 +221,95 @@ const getPollDetailsFromAddress = async () => {
 
 const getVotedPolls = async () => {
   try {
-    
+    if(await checkIsAccountLocked()){
+      return;
+    }
+    let userContract = await getUserContract();
+    let addresses = await userContract.methods.getUserVotedPolls().call({from: fromAddress});
+    let ballotContract = await getBallotContract();
+
+    let votedPollDetails = [];
+
+    addresses.map( async (address) => {
+      votedPollDetails.push(getPollDetailsFromAddress(address, ballotContract));
+    });
+
+    return votedPollDetails;
   } catch (err) {
     console.log(err.toString());
   }
 }
 
-const getTxnForPoll = async () => {
+const getPollDetailsFromAddress = async (address, ballotContract) => {
+  let contract = ballotContract.at(address);
+  let details = await contract.methods.getPollDetails().call({from: fromAddress});
+  let detailsArr = details.split(';');
+  return {
+    creatorName: detailsArr[0],
+    pollName: detailsArr[1],
+    shortDesc: detailsArr[2],
+    longDesc: detailsArr[3],
+    eligibility: detailsArr[4],
+    startTime: detailsArr[5],
+    endTime: detailsArr[6],
+    revealTime: detailsArr[7],
+    candidate: [detailsArr[8], detailsArr[9]],
+  };
+}
+
+const getTxnForPoll = async (address) => {
   try {
-    
+    if(await checkIsAccountLocked()){
+      return;
+    }
+    let userContract = await getUserContract();
+    let transfer = await userContract.methods.getTxnHashForPoll(address).call({from: fromAddress});
+    // transfer contains the txnhash
   } catch (err) {
     console.log(err.toString());
   }
 }
 
-const updateTxnForPoll = async () => {
+const updateTxnForPoll = async (address, hash) => {
   try {
-    
+    if(await checkIsAccountLocked()){
+      return;
+    }
+    let userContract = await getUserContract();
+    let transfer = await userContract.methods.updateTxnHashForPoll(address, hash).send({from: fromAddress});
+    if (transfer){
+      // succesfully updated hash
+    }
   } catch (err) {
     console.log(err.toString());
   }
+}
+
+const voteForPoll = async (candidate, token, poll) => {
+  try {
+    if(await checkIsAccountLocked()){
+      return;
+    }
+    let ballotContract = await getBallotContract();
+    let contract = ballotContract.at(poll);
+    let transfer = await contract.methods.voteToPoll(token, candidate).send({from: fromAddress})
+      .on('transactionHash', (hash) => {
+        updateTxnForPoll(poll, hash);
+      })
+    if (transfer){
+      // Successfully updated txn hash for poll
+    }
+  } catch (err) {
+    console.log(err.toString());
+  }
+}
+
+const verifyVoteFromHash = async (hash) => {
+
 }
 
 const checkIsAccountLocked = async () => {
   try {
-    let account = localStorage.getItem('PollenatorUser');
     await web3.eth.sendTransaction({
       from: account,
       to: account,
@@ -231,12 +328,13 @@ export {
   createUser,
   getAllPolls,
   getRegisteredPolls,
+  getMyPolls,
   getVotedPolls,
-  getPollDetailsFromAddress,
   getTxnForPoll,
   loginUser,
   checkIsAccountLocked,
   registerUser,
   registerPoll,
-  updateTxnForPoll
+  updateTxnForPoll,
+  voteForPoll
 };
