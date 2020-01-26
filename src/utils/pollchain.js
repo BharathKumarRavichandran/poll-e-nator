@@ -3,8 +3,6 @@ const Web3 = require('web3');
 
 const web3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:8545'));
 
-const fromAddress = localStorage.getItem('PollenatorUser')
-
 const getUserContract = async () => {
   try {
     const response = await axios.get('http://127.0.0.1:8000/build/contracts/UserManager.json');
@@ -20,6 +18,7 @@ const getUserContract = async () => {
 
 const createUser = async (name) => {
   try {
+    let fromAddress = localStorage.getItem('PollenatorUser');
     var contract = await getUserContract();
 
     let isLocked = await checkIsAccountLocked();
@@ -77,7 +76,8 @@ const registerUser = async (name, password) => {
   try {
     let response = await web3.eth.personal.newAccount(password);
     if(response.address){
-      localStorage.setItem('PollenatorUser',response.address);
+      localStorage.setItem('PollenatorUser', response.address);
+      console.log(localStorage.getItem('PollenatorUser'));
       await createUser(name);
     }
     console.log(response);
@@ -89,7 +89,7 @@ const registerUser = async (name, password) => {
 
 const loginUser = async (address,password) => {
   try {
-    let response = await web3.eth.personal.unlockAccount(address, password, 600);
+    let response = await web3.eth.personal.unlockAccount(address, password, 600000);
     if(response){
       localStorage.setItem('PollenatorUser', address);
     }
@@ -105,6 +105,8 @@ const registerPoll = async (address) => {
     if(await checkIsAccountLocked()){
       return;
     }
+
+    let fromAddress = localStorage.getItem('PollenatorUser');
     let userContract = await getUserContract();
     let transfer = await userContract.methods.registerForPoll(address).send({from: fromAddress});
     if (transfer) {
@@ -121,6 +123,7 @@ const createPoll = async (pollName, shortDesc, longDesc, eligibility, startTime,
     if(await checkIsAccountLocked()){
       return;
     }
+    let fromAddress = localStorage.getItem('PollenatorUser');
     let userContract = await getUserContract();
     await userContract.methods.createNewPoll(pollName, shortDesc, longDesc, eligibility, candidates[0], candidates[1]).send({from: fromAddress});
     var newPollCreatedEvent = userContract.createdNewPoll();
@@ -129,9 +132,7 @@ const createPoll = async (pollName, shortDesc, longDesc, eligibility, startTime,
       {
         let ballotContract = await getBallotContract();
         let contract = ballotContract.at(result.args.poll);
-        await contract.methods.setStartTime(0, 0, 0, 0, 0).send({from: fromAddress});
-        await contract.methods.setEndTime(0, 0, 0, 0, 0).send({from: fromAddress});
-        await contract.methods.setRevealTime(0, 0, 0, 0, 0).send({from: fromAddress});
+        await contract.methods.setTimes(startTime, endTime, revealTime).send({from: fromAddress});
         // Successfully created poll, update list details 
         // Created poll address = result.args.poll
       } 
@@ -149,7 +150,7 @@ const getBallotContract = async () => {
     const response = await axios.get('http://127.0.0.1:8000/build/contracts/Ballot.json');
     let ballotContractJSON = response.data;
     var contractABI = ballotContractJSON.abi;
-    var ballotContract = new web3.eth.contract(contractABI);
+    var ballotContract = new web3.eth.Contract(contractABI);
     return ballotContract;
   } catch (error) {
     console.error(error);
@@ -161,6 +162,7 @@ const getAllPolls = async () => {
     if(await checkIsAccountLocked()){
       return;
     }
+    let fromAddress = localStorage.getItem('PollenatorUser');
     let userContract = await getUserContract();
     let addresses = await userContract.methods.getAllPolls().call({from: fromAddress});
     let ballotContract = await getBallotContract();
@@ -182,6 +184,7 @@ const getRegisteredPolls = async () => {
     if(await checkIsAccountLocked()){
       return;
     }
+    let fromAddress = localStorage.getItem('PollenatorUser');
     let userContract = await getUserContract();
     let addresses = await userContract.methods.getUserRegisteredPolls().call({from: fromAddress});
     let ballotContract = await getBallotContract();
@@ -203,6 +206,7 @@ const getMyPolls = async () => {
     if(await checkIsAccountLocked()){
       return;
     }
+    let fromAddress = localStorage.getItem('PollenatorUser');
     let userContract = await getUserContract();
     let addresses = await userContract.methods.getUserCreatedPolls().call({from: fromAddress});
     let ballotContract = await getBallotContract();
@@ -224,6 +228,7 @@ const getVotedPolls = async () => {
     if(await checkIsAccountLocked()){
       return;
     }
+    let fromAddress = localStorage.getItem('PollenatorUser');
     let userContract = await getUserContract();
     let addresses = await userContract.methods.getUserVotedPolls().call({from: fromAddress});
     let ballotContract = await getBallotContract();
@@ -241,6 +246,7 @@ const getVotedPolls = async () => {
 }
 
 const getPollDetailsFromAddress = async (address, ballotContract) => {
+  let fromAddress = localStorage.getItem('PollenatorUser');
   let contract = ballotContract.at(address);
   let details = await contract.methods.getPollDetails().call({from: fromAddress});
   let detailsArr = details.split(';');
@@ -262,6 +268,7 @@ const getTxnForPoll = async (address) => {
     if(await checkIsAccountLocked()){
       return;
     }
+    let fromAddress = localStorage.getItem('PollenatorUser');
     let userContract = await getUserContract();
     let transfer = await userContract.methods.getTxnHashForPoll(address).call({from: fromAddress});
     // transfer contains the txnhash
@@ -275,6 +282,7 @@ const updateTxnForPoll = async (address, hash) => {
     if(await checkIsAccountLocked()){
       return;
     }
+    let fromAddress = localStorage.getItem('PollenatorUser');
     let userContract = await getUserContract();
     let transfer = await userContract.methods.updateTxnHashForPoll(address, hash).send({from: fromAddress});
     if (transfer){
@@ -290,6 +298,7 @@ const voteForPoll = async (candidate, token, poll) => {
     if(await checkIsAccountLocked()){
       return;
     }
+    let fromAddress = localStorage.getItem('PollenatorUser');
     let ballotContract = await getBallotContract();
     let contract = ballotContract.at(poll);
     let transfer = await contract.methods.voteToPoll(token, candidate).send({from: fromAddress})
@@ -310,15 +319,19 @@ const verifyVoteFromHash = async (hash) => {
 
 const checkIsAccountLocked = async () => {
   try {
+    let fromAddress = localStorage.getItem('PollenatorUser');
+    console.log(fromAddress);
+    /*
     await web3.eth.sendTransaction({
-      from: account,
-      to: account,
+      from: fromAddress,
+      to: fromAddress,
       value: 0
     });
+    */
     return false;
   } catch (err) {
     console.log(err.toString());
-    localStorage.removeItem('PollenatorUser');
+    //localStorage.removeItem('PollenatorUser');
     return (err.message == 'authentication needed: password or unlock');
   }
 }
@@ -327,6 +340,8 @@ export {
   createPoll,
   createUser,
   getAllPolls,
+  getBallotContract,
+  getPollDetailsFromAddress,
   getRegisteredPolls,
   getMyPolls,
   getVotedPolls,

@@ -45,7 +45,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const PollCard = props => {
-  const { className, product, ...rest } = props;
+  const { className, poll, ...rest } = props;
 
   const classes = useStyles();
 
@@ -79,7 +79,7 @@ const PollCard = props => {
           <img
             alt="Company"
             className={classes.image}
-            src={product.imageUrl}
+            src={poll.imageUrl}
           />
         </div>
         <Typography
@@ -87,13 +87,13 @@ const PollCard = props => {
           gutterBottom
           variant="h4"
         >
-          {product.title}
+          {poll.title}
         </Typography>
         <Typography
           align="center"
           variant="body1"
         >
-          {product.description}
+          {poll.description}
         </Typography>
       </CardContent>
       <Divider />
@@ -111,7 +111,7 @@ const PollCard = props => {
               display="inline"
               variant="body2"
             >
-              {product.startTime} - {product.endTime}
+              {poll.startTime} - {poll.endTime}
             </Typography>
           </Grid>
           <Grid
@@ -123,14 +123,14 @@ const PollCard = props => {
               display="inline"
               variant="body2"
             >
-              Creator: {product.creator}
+              Creator: {poll.creatorName}
             </Typography>
           </Grid>
         </Grid>
       </CardActions>
       { props.footerBtnText ? (
         <CardActions>
-          <Link to={footerToBaseLink+'/'+product.id}>
+          <Link to={footerToBaseLink+'/'+poll.address}>
             <Button
               color="secondary"
               size="small"
@@ -150,7 +150,7 @@ PollCard.propTypes = {
   footerBtnText: PropTypes.string,
   handleJoinClick: PropTypes.func,  
   isJoin: PropTypes.bool,
-  product: PropTypes.object.isRequired,
+  poll: PropTypes.object.isRequired,
 };
 
 export default PollCard;

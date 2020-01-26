@@ -174,7 +174,7 @@ const SignIn = props => {
     if(formState.isValid){
       let loginResponse = await loginUser(formState.values.address, formState.values.password);
       if(loginResponse){  
-        history.push('/');
+        history.push('/polls/all');
       }
       else {
         // TODO: Do something

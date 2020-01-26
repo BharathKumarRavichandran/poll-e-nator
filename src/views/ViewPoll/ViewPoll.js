@@ -31,7 +31,9 @@ import {
 import AccessTimeIcon from '@material-ui/icons/AccessTime';
 import Person from '@material-ui/icons/Person';
 import UpdateIcon from '@material-ui/icons/Update';
+import AlarmOnIcon from '@material-ui/icons/AlarmOn';
 
+import { voteForPoll, getPollDetailsFromAddress, getBallotContract } from '../../utils/pollchain';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -98,15 +100,16 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-const poll = {
+const pollData = {
   id: 'sadasd',
   pollName: 'Dropbox',
   imageUrl: '/images/products/product_1.png',
-  creator: 'John Doe',
+  creatorName: 'John Doe',
   shortDesc: 'sadassd',
   longDesc: 'Dropbox is a file hosting service that offers cloud storage, file synchronization, a personal cloud. Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',
   startTime: '26th Jan',
   endTime: '27th Jan',
+  revealTime: '28th Jan',
   candidates: ['John', 'Pearson', 'Harvey']
 };
 
@@ -118,31 +121,38 @@ const ViewPoll = (props) => {
   const classes = useStyles();
 
   const [pageType] = useState(props.location.pathname.split('/')[2]);
-  const [pollId] = useState(props.match.params.pollId);
+  const [poll, setPoll] = useState(pollData);
+  const [pollAddress] = useState(props.match.params.pollAddress);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [votedCandidate, setVotedCandidate] = useState('John');
 
-  const handleVerifyVote = () => {
+  const handleVerifyVote = async () => {
     setDialogOpen(true);
   };
 
-  const handleDialogClose = () => {
+  const handleDialogClose = async () => {
     setDialogOpen(false);
   };
 
-  const handleRevealResults = () => {
+  const handleRevealResults = async () => {
     
   };
 
+  const handleVoteClick = async () => {
+    await voteForPoll();
+  };
+
   useEffect( () => {
-    async function fetchAPI() {
+    async function fetchBC() {
       try {
-        // Fetch Poll Details
+        let pollDetails = await getPollDetailsFromAddress(pollAddress, await getBallotContract());
+        console.log(pollDetails);
+        setPoll(pollDetails);
       } catch(error) {
         console.log(error.toString());
       }
     }
-    fetchAPI();
+    fetchBC();
   }, []);
 
   return (
@@ -170,7 +180,7 @@ const ViewPoll = (props) => {
                     display="inline"
                     variant="body2"
                   >
-                  Creator: {poll.creator}
+                  Creator: {poll.creatorName}
                   </Typography>
                 </Grid>
               }
@@ -240,8 +250,26 @@ const ViewPoll = (props) => {
                   </Typography>
                 </Grid>
               </Grid>
+              <Grid
+                container
+                justify="space-between"
+              >
+                <Grid
+                  className={classes.statsItem}
+                  item
+                >
+                  <AlarmOnIcon className={classes.statsIcon} />
+                  <Typography
+                    display="inline"
+                    variant="body2"
+                  >
+                    Reveal Date: {poll.revealTime}
+                  </Typography>
+                </Grid>
+              </Grid>
               { pageType === 'view' ? (
                 <React.Fragment>
+                  {/*
                   <Grid
                     className={classes.gapBetween}
                     container
@@ -285,6 +313,7 @@ const ViewPoll = (props) => {
                       </Button>
                     </Grid>
                   </Grid>
+                  */}
                   <Grid
                     className={classes.gapBetween}
                     container
@@ -358,6 +387,7 @@ const ViewPoll = (props) => {
                       className={classes.buttonMargin}
                       color="primary"
                       variant="contained"
+                      onClick={handleVoteClick}
                     >
                       Vote
                     </Button>

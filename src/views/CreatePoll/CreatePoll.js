@@ -25,6 +25,8 @@ import {
 import DateFnsUtils from '@date-io/date-fns';
 */
 
+import { createPoll } from '../../utils/pollchain';
+
 const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.spacing(4)
@@ -65,6 +67,10 @@ const CreatePoll = () => {
     shortDesc: 'Hello short',
     longDesc:'Hello long long',
     eligibility: 'Only Senior Partners from Pearson Specter Litt can vote.',
+    startTime: Date.now(),
+    endTime: Date.now(),
+    revealTime: Date.now(),
+    candidates: 'asdasd;asdad;asd'
   });
 
   const handleChange = event => {
@@ -72,6 +78,15 @@ const CreatePoll = () => {
       ...values,
       [event.target.name]: event.target.value
     });
+  };
+
+  const handleCreatePoll = async () => {
+    let candidateArr = values.candidates.split(';');
+    if(candidateArr.length<2){
+      candidateArr.push('Doe');
+    }
+    let response = await createPoll(values.pollName, values.shortDesc, values.longDesc, values.eligibility, values.startTime, values.endTime, values.revealTime, candidateArr);
+    console.log(response);
   };
 
   return (
@@ -171,7 +186,7 @@ const CreatePoll = () => {
                         name="candidateNames"
                         onChange={handleChange}
                         required
-                        value={values.candidateNames}
+                        value={values.candidates}
                       />
                     </Grid>
                     <Grid
@@ -222,6 +237,39 @@ const CreatePoll = () => {
                             autoOk
                             label="Poll End DateTime"
                           />
+                        </Grid>
+                      </Grid>
+                    </Grid>
+                    <Grid
+                      item
+                      lg={12}
+                      xs={12}
+                    >
+                      <Grid
+                        className={classes.gapBetweenExtra}
+                        container
+                        lg={12}
+                        xs={12}
+                      >
+                        <Grid
+                          item
+                          lg={6}
+                          sm={6}
+                          xs={12}
+                        >
+                          <DateTimePicker
+                            ampm={false}
+                            autoOk
+                            label="Poll Reveal DateTime"
+                          />
+                        </Grid>
+                        <Grid
+                          item
+                          lg={6}
+                          sm={6}
+                          xs={12}
+                        >
+                          ''
                         </Grid>
                       </Grid>
                     </Grid>
@@ -303,6 +351,7 @@ const CreatePoll = () => {
                   <Button
                     color="primary"
                     variant="contained"
+                    onClick={handleCreatePoll}
                   >
                   Create Poll
                   </Button>

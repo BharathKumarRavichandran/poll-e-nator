@@ -65,13 +65,13 @@ const Routes = () => {
         component={ViewPollView}
         exact
         layout={MainLayout}
-        path="/polls/view/:pollId"
+        path="/polls/view/:pollAddress"
       />
       <RouteWithLayout
         component={ViewPollView}
         exact
         layout={MainLayout}
-        path="/polls/vote/:pollId"
+        path="/polls/vote/:pollAddress"
       />
       <RouteWithLayout
         component={DashboardView}
