@@ -6,7 +6,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:8545'));
 const getUserContract = async () => {
   try {
     const response = await axios.get('http://127.0.0.1:8000/build/contracts/UserManager.json');
-    let userContractAddress = '0x0b778080ADD925759794e1b98F7a3cA59F387b9b';
+    let userContractAddress = '0xFD9aFBe646e6173360067fa32F485b1693fc9345';
     let userContractJSON = response.data;
     var contractABI = userContractJSON.abi;
     var userContract = new web3.eth.Contract(contractABI, userContractAddress);
@@ -125,7 +125,7 @@ const createPoll = async (pollName, shortDesc, longDesc, eligibility, startTime,
     }
     let fromAddress = localStorage.getItem('PollenatorUser');
     let userContract = await getUserContract();
-    await userContract.methods.createNewPoll(pollName, shortDesc, longDesc, eligibility, candidates[0], candidates[1]).send({from: fromAddress});
+    await userContract.methods.createNewPoll(pollName, shortDesc, longDesc, eligibility, candidates[0]).send({from: fromAddress});
     var newPollCreatedEvent = userContract.createdNewPoll();
     newPollCreatedEvent.watch( async (error, result) => {
       if (!error)
@@ -172,7 +172,6 @@ const getAllPolls = async () => {
     addresses.map( async (address) => {
       allPollDetails.push(getPollDetailsFromAddress(address, ballotContract));
     });
-
     return allPollDetails;
   } catch (err) {
     console.log(err.toString());

@@ -119,15 +119,26 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 
 const ViewPoll = (props) => {
   const classes = useStyles();
+  const { history } = props;
 
   const [pageType] = useState(props.location.pathname.split('/')[2]);
   const [poll, setPoll] = useState(pollData);
   const [pollAddress] = useState(props.match.params.pollAddress);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [candidate, setCandidate] = useState('');
+  const [token, setToken] = useState('');
   const [votedCandidate, setVotedCandidate] = useState('John');
 
   const handleVerifyVote = async () => {
     setDialogOpen(true);
+  };
+
+  const handleCandidateChange = async (event) => {
+    setCandidate(event.target.value);
+  };
+
+  const handleTokenChange = async (event) => {
+    setToken(event.target.value);
   };
 
   const handleDialogClose = async () => {
@@ -139,7 +150,16 @@ const ViewPoll = (props) => {
   };
 
   const handleVoteClick = async () => {
-    await voteForPoll();
+    if(candidate && token){
+      let response = await voteForPoll(candidate, token, pollAddress);
+      console.log(response);
+      if(response){
+        history.push('/polls/all');
+      }
+    } else {
+      alert('Please fill form properly!');
+      console.log('Please fill form properly!');
+    }
   };
 
   useEffect( () => {
@@ -349,6 +369,8 @@ const ViewPoll = (props) => {
                       <RadioGroup
                         aria-label="candidate"
                         name="candidate"
+                        onChange={handleCandidateChange}
+                        value={candidate}
                       >
                         { poll.candidates.map(candidate => (
                           <FormControlLabel
@@ -376,6 +398,8 @@ const ViewPoll = (props) => {
                       name="token"
                       required
                       variant="outlined"
+                      value={token}
+                      onChange={handleTokenChange}
                     />
                   </Grid>
                   <Grid
