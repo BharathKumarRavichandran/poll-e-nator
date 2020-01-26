@@ -8,6 +8,9 @@ import { AppBar, Toolbar } from '@material-ui/core';
 const useStyles = makeStyles(() => ({
   root: {
     boxShadow: 'none'
+  },
+  whiteTitle: {
+    color: 'white'
   }
 }));
 
@@ -25,10 +28,13 @@ const Topbar = props => {
     >
       <Toolbar>
         <RouterLink to="/">
-          <img
-            alt="Logo"
-            src="/images/logos/logo--white.svg"
-          />
+          <h1 className={classes.whiteTitle}>Poll-e-nator</h1>
+          {/*
+            <img
+              alt="Logo"
+              src="/images/logos/logo--white.svg"
+            />
+          */}
         </RouterLink>
       </Toolbar>
     </AppBar>

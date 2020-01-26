@@ -32,6 +32,7 @@
     "@material-ui/icons": "^4.2.1",
     "@material-ui/pickers": "^3.2.9",
     "@material-ui/styles": "^4.2.1",
+    "axios": "^0.19.2",
     "chart.js": "^2.8.0",
     "clsx": "^1.0.4",
     "date-fns": "^2.0.0-beta.5",
@@ -48,7 +49,8 @@
     "recompose": "^0.30.0",
     "underscore": "^1.9.1",
     "uuid": "^3.3.2",
-    "validate.js": "^0.13.1"
+    "validate.js": "^0.13.1",
+    "web3": "^1.2.5-rc.0"
   },
   "devDependencies": {
     "eslint-plugin-prettier": "^3.0.1",

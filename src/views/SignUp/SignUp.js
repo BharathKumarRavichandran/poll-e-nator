@@ -1,38 +1,34 @@
+/* eslint-disable react/no-multi-comp */
 import React, { useState, useEffect } from 'react';
-import { Link as RouterLink, withRouter } from 'react-router-dom';
+import { Link as RouterLink, withRouter, Redirect } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import validate from 'validate.js';
 import { makeStyles } from '@material-ui/styles';
 import {
   Grid,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   IconButton,
   TextField,
   Link,
   FormHelperText,
   Checkbox,
+  Slide,
   Typography
 } from '@material-ui/core';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 
+import { registerUser } from '../../utils/pollchain';
+
 const schema = {
-  firstName: {
+  name: {
     presence: { allowEmpty: false, message: 'is required' },
     length: {
       maximum: 32
-    }
-  },
-  lastName: {
-    presence: { allowEmpty: false, message: 'is required' },
-    length: {
-      maximum: 32
-    }
-  },
-  email: {
-    presence: { allowEmpty: false, message: 'is required' },
-    email: true,
-    length: {
-      maximum: 64
     }
   },
   password: {
@@ -40,10 +36,6 @@ const schema = {
     length: {
       maximum: 128
     }
-  },
-  policy: {
-    presence: { allowEmpty: false, message: 'is required' },
-    checked: true
   }
 };
 
@@ -140,10 +132,22 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide
+direction="up"
+        ref={ref}
+        {...props}
+         />;
+});
+
 const SignUp = props => {
   const { history } = props;
 
   const classes = useStyles();
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [address, setAddress] = useState(null);
+  const [redirect, setRedirect] = useState(false);
 
   const [formState, setFormState] = useState({
     isValid: false,
@@ -151,6 +155,10 @@ const SignUp = props => {
     touched: {},
     errors: {}
   });
+
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+  };
 
   useEffect(() => {
     const errors = validate(formState.values, schema);
@@ -185,196 +193,177 @@ const SignUp = props => {
     history.goBack();
   };
 
-  const handleSignUp = event => {
+  const handleSignUp = async (event) => {
     event.preventDefault();
-    history.push('/');
+    if(formState.isValid) {
+      let registerResponse = await registerUser(formState.values.name, formState.values.password);
+      if(registerResponse) {
+        setAddress(registerResponse);
+        setDialogOpen(true);
+        setRedirect(true);
+      }
+    }
   };
 
   const hasError = field =>
     formState.touched[field] && formState.errors[field] ? true : false;
 
   return (
-    <div className={classes.root}>
-      <Grid
-        className={classes.grid}
-        container
-      >
-        <Grid
-          className={classes.quoteContainer}
-          item
-          lg={5}
+    (redirect && !dialogOpen) ? (
+      <Redirect
+        exact
+        from="/"
+        to="/polls/all"
+      />
+    ):(
+      <div className={classes.root}>
+        {/* Modal Dialog */}
+        <Dialog
+          aria-describedby="alert-dialog-slide-description"
+          aria-labelledby="alert-dialog-slide-title"
+          keepMounted
+          open={dialogOpen}
+          TransitionComponent={Transition}
         >
-          <div className={classes.quote}>
-            <div className={classes.quoteInner}>
-              <Typography
-                className={classes.quoteText}
-                variant="h1"
-              >
+          <DialogTitle id="alert-dialog-slide-title">{'Login Wallet Address'}</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-slide-description">
+              Your wallet address is: {address}.
+              <Typography>Please remember this. Without this you won't be able to login.</Typography>
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              color="primary"
+              onClick={handleDialogClose}
+            >
+            Close
+            </Button>
+          </DialogActions>
+        </Dialog>
+        <Grid
+          className={classes.grid}
+          container
+        >
+          <Grid
+            className={classes.quoteContainer}
+            item
+            lg={5}
+          >
+            <div className={classes.quote}>
+              <div className={classes.quoteInner}>
+                <Typography
+                  className={classes.quoteText}
+                  variant="h1"
+                >
                 Hella narwhal Cosby sweater McSweeney's, salvia kitsch before
                 they sold out High Life.
-              </Typography>
-              <div className={classes.person}>
-                <Typography
-                  className={classes.name}
-                  variant="body1"
-                >
+                </Typography>
+                <div className={classes.person}>
+                  <Typography
+                    className={classes.name}
+                    variant="body1"
+                  >
                   Takamaru Ayako
-                </Typography>
-                <Typography
-                  className={classes.bio}
-                  variant="body2"
-                >
+                  </Typography>
+                  <Typography
+                    className={classes.bio}
+                    variant="body2"
+                  >
                   Manager at inVision
-                </Typography>
+                  </Typography>
+                </div>
               </div>
             </div>
-          </div>
-        </Grid>
-        <Grid
-          className={classes.content}
-          item
-          lg={7}
-          xs={12}
-        >
-          <div className={classes.content}>
-            <div className={classes.contentHeader}>
-              <IconButton onClick={handleBack}>
-                <ArrowBackIcon />
-              </IconButton>
-            </div>
-            <div className={classes.contentBody}>
-              <form
-                className={classes.form}
-                onSubmit={handleSignUp}
-              >
-                <Typography
-                  className={classes.title}
-                  variant="h2"
+          </Grid>
+          <Grid
+            className={classes.content}
+            item
+            lg={7}
+            xs={12}
+          >
+            <div className={classes.content}>
+              <div className={classes.contentHeader}>
+                <IconButton onClick={handleBack}>
+                  <ArrowBackIcon />
+                </IconButton>
+              </div>
+              <div className={classes.contentBody}>
+                <form
+                  className={classes.form}
+                  onSubmit={handleSignUp}
                 >
-                  Create new account
-                </Typography>
-                <Typography
-                  color="textSecondary"
-                  gutterBottom
-                >
-                  Use your email to create new account
-                </Typography>
-                <TextField
-                  className={classes.textField}
-                  error={hasError('firstName')}
-                  fullWidth
-                  helperText={
-                    hasError('firstName') ? formState.errors.firstName[0] : null
-                  }
-                  label="First name"
-                  name="firstName"
-                  onChange={handleChange}
-                  type="text"
-                  value={formState.values.firstName || ''}
-                  variant="outlined"
-                />
-                <TextField
-                  className={classes.textField}
-                  error={hasError('lastName')}
-                  fullWidth
-                  helperText={
-                    hasError('lastName') ? formState.errors.lastName[0] : null
-                  }
-                  label="Last name"
-                  name="lastName"
-                  onChange={handleChange}
-                  type="text"
-                  value={formState.values.lastName || ''}
-                  variant="outlined"
-                />
-                <TextField
-                  className={classes.textField}
-                  error={hasError('email')}
-                  fullWidth
-                  helperText={
-                    hasError('email') ? formState.errors.email[0] : null
-                  }
-                  label="Email address"
-                  name="email"
-                  onChange={handleChange}
-                  type="text"
-                  value={formState.values.email || ''}
-                  variant="outlined"
-                />
-                <TextField
-                  className={classes.textField}
-                  error={hasError('password')}
-                  fullWidth
-                  helperText={
-                    hasError('password') ? formState.errors.password[0] : null
-                  }
-                  label="Password"
-                  name="password"
-                  onChange={handleChange}
-                  type="password"
-                  value={formState.values.password || ''}
-                  variant="outlined"
-                />
-                <div className={classes.policy}>
-                  <Checkbox
-                    checked={formState.values.policy || false}
-                    className={classes.policyCheckbox}
-                    color="primary"
-                    name="policy"
-                    onChange={handleChange}
-                  />
                   <Typography
-                    className={classes.policyText}
+                    className={classes.title}
+                    variant="h2"
+                  >
+                  Create new account
+                  </Typography>
+                  <TextField
+                    className={classes.textField}
+                    error={hasError('name')}
+                    fullWidth
+                    helperText={
+                      hasError('name') ? formState.errors.name[0] : null
+                    }
+                    label="Name"
+                    name="name"
+                    onChange={handleChange}
+                    type="text"
+                    value={formState.values.name || ''}
+                    variant="outlined"
+                  />
+                  <TextField
+                    className={classes.textField}
+                    error={hasError('password')}
+                    fullWidth
+                    helperText={
+                      hasError('password') ? formState.errors.password[0] : null
+                    }
+                    label="Password"
+                    name="password"
+                    onChange={handleChange}
+                    type="password"
+                    value={formState.values.password || ''}
+                    variant="outlined"
+                  />
+                  {hasError('policy') && (
+                    <FormHelperText error>
+                      {formState.errors.policy[0]}
+                    </FormHelperText>
+                  )}
+                  <Button
+                    className={classes.signUpButton}
+                    color="primary"
+                    disabled={!formState.isValid}
+                    fullWidth
+                    onClick={handleSignUp}
+                    size="large"
+                    type="submit"
+                    variant="contained"
+                  >
+                  Sign up now
+                  </Button>
+                  <Typography
                     color="textSecondary"
                     variant="body1"
                   >
-                    I have read the{' '}
+                  Have an account?{' '}
                     <Link
-                      color="primary"
                       component={RouterLink}
-                      to="#"
-                      underline="always"
+                      to="/sign-in"
                       variant="h6"
                     >
-                      Terms and Conditions
+                    Sign in
                     </Link>
                   </Typography>
-                </div>
-                {hasError('policy') && (
-                  <FormHelperText error>
-                    {formState.errors.policy[0]}
-                  </FormHelperText>
-                )}
-                <Button
-                  className={classes.signUpButton}
-                  color="primary"
-                  disabled={!formState.isValid}
-                  fullWidth
-                  size="large"
-                  type="submit"
-                  variant="contained"
-                >
-                  Sign up now
-                </Button>
-                <Typography
-                  color="textSecondary"
-                  variant="body1"
-                >
-                  Have an account?{' '}
-                  <Link
-                    component={RouterLink}
-                    to="/sign-in"
-                    variant="h6"
-                  >
-                    Sign in
-                  </Link>
-                </Typography>
-              </form>
+                </form>
+              </div>
             </div>
-          </div>
+          </Grid>
         </Grid>
-      </Grid>
-    </div>
+      </div>
+    )
   );
 };
 

@@ -7,6 +7,8 @@ import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import { PollCard } from '../components/PollCard';
 import uuid from 'uuid/v1';
 
+import { registerPoll } from '../../utils/pollchain';
+
 const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.spacing(4)
@@ -106,6 +108,7 @@ const AllPolls = () => {
 
   const handleJoinClick = async () => {
     console.log('Join clicked');
+    await registerPoll('admin');
   };
 
   return (
